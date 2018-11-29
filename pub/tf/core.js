@@ -178,11 +178,19 @@ let ABCMod = (() => {
                 tf.loadModel("localstorage://ABCMod").then(model => {
                     console.log("we have our model!",model);
                     let output = model.predict(predictTensorX);
-                    console.log(output.print());
-                    output.data().then(result => {
-                        console.log("the result is", result);
-                        //let retArr = result.split(",");
-                        resolve(result);
+                    let indexTensor = output.argMax(1);
+                    indexTensor.data().then(result => {
+                        console.log(result[0]+" <--- index of the highest one",labelList[result[0]]);
+                        let chosenCategory = labelList[result[0]];
+                        output.data().then(result => {
+                            let retObj = {
+                                resultArr:result,
+                                category:chosenCategory
+                            }
+                            console.log("the result is", retObj);
+                            //let retArr = result.split(",");
+                            resolve(retObj);
+                        });
                     });
                 });
             });
@@ -496,10 +504,13 @@ $(() => {
     $("#dataTestBtn").on("click",() => {
         let text = $("#dataTest").val();
         console.log("our text is",text);
-        ABCMod.makePrediction(text).then(arr => {
+        ABCMod.makePrediction(text).then(retObj => {
+            let arr = retObj.resultArr;
+            let category = retObj.category;
             console.log(arr,arr[0],arr[1]);
             $("#foodPC").text(arr[0]);
             $("#carsPC").text(arr[1]);
+            $("#categorySpan").text(category);
         });
     });
 });
