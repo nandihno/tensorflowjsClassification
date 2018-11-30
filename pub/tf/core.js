@@ -1,55 +1,111 @@
 let trainingData = [
+
     {
-        input: "I like pizzas",
-        output: "Food"
+        "input": "my unit test failed",
+        "output": "software"
     },
     {
-        input: "I like to eat lots of burgers",
-        output: "Food"
+        "input": "tried the program, but it was buggy",
+        "output": "software"
     },
     {
-        input: "tummy is full now",
-        output: "Food"
+        "input": "i need a new power supply",
+        "output": "hardware"
+
     },
     {
-        input: "pizzas are bad",
-        output: "Food"
+        "input": "the drive has a 2TB capacity",
+        "output": "hardware"
     },
     {
-        input: "i want to eat",
-        output: "Food"
+        "input": "unit-tests",
+        "output": "software"
     },
     {
-        input: "cooking is very nice for the tummy",
-        output: "Food"
+        "input": "program",
+        "output": "software"
     },
     {
-        input: "cars are fast",
-        output: "Transport"
+        "input": "power supply",
+        "output": "hardware"
     },
     {
-        input: "cars are fast",
-        output: "Transport"
-    },{
-        input: "bikes travel way faster than scooters",
-        output: "Transport"
+        "input": "drive",
+        "output": "hardware"
     },
     {
-        input: "i like scooters",
-        output: "Transport"
+        "input": "it needs more memory",
+        "output": "hardware"
     },
     {
-        input: "I love travelling on cars",
-        output: "Transport"
+        "input": "code",
+        "output": "software"
     },
     {
-        input: "travelling on my car is like the best drive ever",
-        output: "Transport"
+        "input": "i found some bugs in the code",
+        "output": "software"
+    },
+    {
+        "input": "i swapped the memory",
+        "output": "software"
+    },
+    {
+        "input": "i tested the code",
+        "output": "software"
+    },
+    {
+        "input": "i love computers",
+        "output": "hardware"
+    },
+    {
+        "input": "programming",
+        "output": "software"
+    },
+    {
+        "input": "i broke my pc",
+        "output": "hardware"
+    },
+    {
+        "input": "computer",
+        "output": "hardware"
+    },
+    {
+        "input": "buy me a laptop",
+        "output": "hardware"
+    },
+    {
+        "input": "buy me a laptop",
+        "output": "hardware"
+    },
+    {
+        "input": "sell me an old laptop",
+        "output": "hardware"
+    },
+    {
+        "input": "router is not good",
+        "output": "hardware"
+    },
+    {
+        "input": "can not connect to phone",
+        "output": "hardware"
+    },
+    {
+        "input": "phone",
+        "output": "hardware"
+    },
+    {
+        "input": "mobile",
+        "output": "hardware"
+    },
+    {
+        "input": "i love to play games",
+        "output": "software"
     }
+
 ];
 let labelList = [
-    "Food",
-    "Transport"
+    "software",
+    "hardware"
 ];
 
 
@@ -62,7 +118,7 @@ let ABCMod = (() => {
 
     let normaliseData = (charArr) => {
         for (var i = charArr.length; i < MAXSIZE; i++) {
-            charArr[i] = "*";
+            charArr[i] = " ";
         }
         return charArr;
     };
@@ -92,11 +148,11 @@ let ABCMod = (() => {
         });
         let indeces = [];
         arr.forEach((element) => {
-           indeces.push(labelList.indexOf(element));
+            indeces.push(labelList.indexOf(element));
         });
         console.log(arr);
-        let labelTensor = tf.tensor1d(indeces,'int32');
-        let ysOneHot = tf.oneHot(labelTensor,2);
+        let labelTensor = tf.tensor1d(indeces, 'int32');
+        let ysOneHot = tf.oneHot(labelTensor, 2);
         labelTensor.dispose();
         ysOneHot.print();
 
@@ -105,7 +161,7 @@ let ABCMod = (() => {
     };
 
     let createTensorFromTrainingData = (trainingData) => {
-        let ob =  {
+        let ob = {
             tensorX: createXTensor(trainingData),
             tensorY: createYTensor(trainingData)
         };
@@ -128,7 +184,7 @@ let ABCMod = (() => {
                 activation: 'softmax'
             }));
             model.compile({
-                optimizer: tf.train.sgd(0.7),
+                optimizer: tf.train.sgd(0.6),
                 loss: 'categoricalCrossentropy'
             });
         },
@@ -136,26 +192,26 @@ let ABCMod = (() => {
             return createTensorFromTrainingData(trainingData);
         },
         train(tensorObj) {
-            return new Promise((resolve,reject) => {
+            return new Promise((resolve, reject) => {
                 $("#trainingMessage").show();
                 if (localStorage.getItem("tensorflowjs_models/ABCMod/info") === null) {
                     let config = {
-                        epochs: 1000,
-                        shuffle:true,
-                        callbacks:{
+                        epochs: 2000,
+                        shuffle: true,
+                        callbacks: {
                             onTrainBegin: () => console.log("training started"),
                             onTrainEnd: () => console.log("training has ended!"),
-                            onEpochEnd:(num,logs) => {
-                                console.log("epoch "+num+" loss is: ",logs);
+                            onEpochEnd: (num, logs) => {
+                                console.log("epoch " + num + " loss is: ", logs);
 
                             }
                         }
                     };
-                    model.fit(tensorObj.tensorX,tensorObj.tensorY,config).then(response => {
+                    model.fit(tensorObj.tensorX, tensorObj.tensorY, config).then(response => {
                         console.log(response);
                         console.log(response.history.loss[0]);
                         model.save("localstorage://ABCMod").then(result => {
-                            console.log("data has been saved",result);
+                            console.log("data has been saved", result);
                             $("#trainingMessage").hide();
                             resolve(model);
                         });
@@ -163,7 +219,7 @@ let ABCMod = (() => {
                 }
                 else {
                     tf.loadModel("localstorage://ABCMod").then(model => {
-                        console.log("we have our model!",model);
+                        console.log("we have our model!", model);
                         $("#trainingMessage").hide();
                         resolve(model);
                     });
@@ -171,21 +227,21 @@ let ABCMod = (() => {
             });
         },
         makePrediction(text) {
-            return new Promise ((resolve,reject) => {
+            return new Promise((resolve, reject) => {
                 let arr = [];
                 arr.push(encodeArrString(text));
                 let predictTensorX = tf.tensor(arr);
                 tf.loadModel("localstorage://ABCMod").then(model => {
-                    console.log("we have our model!",model);
+                    console.log("we have our model!", model);
                     let output = model.predict(predictTensorX);
                     let indexTensor = output.argMax(1);
                     indexTensor.data().then(result => {
-                        console.log(result[0]+" <--- index of the highest one",labelList[result[0]]);
+                        console.log(result[0] + " <--- index of the highest one", labelList[result[0]]);
                         let chosenCategory = labelList[result[0]];
                         output.data().then(result => {
                             let retObj = {
-                                resultArr:result,
-                                category:chosenCategory
+                                resultArr: result,
+                                category: chosenCategory
                             }
                             console.log("the result is", retObj);
                             //let retArr = result.split(",");
@@ -194,7 +250,6 @@ let ABCMod = (() => {
                     });
                 });
             });
-
 
 
         }
@@ -496,18 +551,18 @@ $(() => {
         localStorage.clear();
     });
 
-    $("#testTrain").on("click",() => {
+    $("#testTrain").on("click", () => {
         ABCMod.init();
         let tensorObj = ABCMod.getTensorTrainingObj();
         ABCMod.train(tensorObj);
     });
-    $("#dataTestBtn").on("click",() => {
+    $("#dataTestBtn").on("click", () => {
         let text = $("#dataTest").val();
-        console.log("our text is",text);
+        console.log("our text is", text);
         ABCMod.makePrediction(text).then(retObj => {
             let arr = retObj.resultArr;
             let category = retObj.category;
-            console.log(arr,arr[0],arr[1]);
+            console.log(arr, arr[0], arr[1]);
             $("#foodPC").text(arr[0]);
             $("#carsPC").text(arr[1]);
             $("#categorySpan").text(category);
